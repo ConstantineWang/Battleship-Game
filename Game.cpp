@@ -6,8 +6,23 @@
 #include <string>
 #include <cstdlib>
 #include <cctype>
+#include <list>
 
 using namespace std;
+
+class ship{
+    public:
+        ship(int len, string name, char symbol,int id):mlength(len),mName(name),mSymbol(symbol),mId(id){}
+        int length() const{return mlength;}
+        string name() const{return mName;}
+        char symbol() const{return mSymbol;}
+
+    private:
+        int mlength;
+        string mName;
+        char mSymbol;
+        int mId;
+};
 
 class GameImpl
 {
@@ -26,8 +41,9 @@ class GameImpl
     private:
         int mRows;
         int mCols;
-
+        vector<ship> mShips;
 };
+
 
 void waitForEnter()
 {
@@ -63,27 +79,28 @@ Point GameImpl::randomPoint() const
 
 bool GameImpl::addShip(int length, char symbol, string name)
 {
-    return false;  // This compiles but may not be correct
+    mShips.push_back(ship(length,name,symbol,mShips.size()));
+    return true;
 }
 
 int GameImpl::nShips() const
 {
-    return -1;  // This compiles but may not be correct
+    return mShips.size();
 }
 
 int GameImpl::shipLength(int shipId) const
 {
-    return -1;  // This compiles but may not be correct
+    return mShips[shipId].length();
 }
 
 char GameImpl::shipSymbol(int shipId) const
 {
-    return '?';  // This compiles but may not be correct
+    return mShips[shipId].symbol();
 }
 
 string GameImpl::shipName(int shipId) const
 {
-    return "";  // This compiles but may not be correct
+    return mShips[shipId].name();
 }
 
 Player* GameImpl::play(Player* p1, Player* p2, Board& b1, Board& b2, bool shouldPause)

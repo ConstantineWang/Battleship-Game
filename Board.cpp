@@ -7,7 +7,7 @@ using namespace std;
 
 class BoardImpl
 {
-  public:
+public:
     BoardImpl(const Game& g);
     void clear();
     void block();
@@ -18,66 +18,253 @@ class BoardImpl
     bool attack(Point p, bool& shotHit, bool& shipDestroyed, int& shipId);
     bool allShipsDestroyed() const;
 
-  private:
+private:
       // TODO:  Decide what private members you need.  Here's one that's likely
       //        to be useful:
     const Game& m_game;
+    int mRows;
+    int mCols;
+    vector < vector <char> > realBoard;
 };
 
 BoardImpl::BoardImpl(const Game& g)
- : m_game(g)
+    : m_game(g)
 {
-    // This compiles, but may not be correct
+    mRows = m_game.rows();
+    mCols = m_game.cols();
+
+        for (int i = 0; i < mCols; i++)
+    {
+        for (int j = 0; j < mRows; j++)
+        {
+            realBoard[i][j] = '.';
+        }
+    }
 }
 
 void BoardImpl::clear()
 {
-    // This compiles, but may not be correct
+    for (int i = 0; i < mCols; i++)
+    {
+        for (int j = 0; j < mRows; j++)
+        {
+            realBoard[i][j] = '.';
+        }
+    }
 }
 
 void BoardImpl::block()
 {
+    int num = 0;
       // Block cells with 50% probability
     for (int r = 0; r < m_game.rows(); r++)
-        for (int c = 0; c < m_game.cols(); c++)
+        for (int c = 0; c < m_game.cols(); c++){
             if (randInt(2) == 0)
             {
-                ; // TODO:  Replace this with code to block cell (r,c)
+                for (int r = 0; r < mRows; r++)
+                {
+                    for (int c = 0; c < mCols; c++)
+                    {
+                        if(realBoard[r][c] == 'X')
+                        {
+                            num++;
+                        }
+                    }
+                }
+                if(num >= mRows*mCols/2)
+                {
+                    return;
+                } 
+
+                realBoard[r][c] = 'X';
             }
+        }
+        if(num <= mRows*mCols/2)
+        {
+            block();
+        }
+        return;
 }
+
 
 void BoardImpl::unblock()
 {
     for (int r = 0; r < m_game.rows(); r++)
         for (int c = 0; c < m_game.cols(); c++)
         {
-            ; // TODO:  Replace this with code to unblock cell (r,c) if blocked
+            if (realBoard[r][c] == 'X')
+            {
+                realBoard[r][c] = '.';
+            }
         }
 }
 
+
 bool BoardImpl::placeShip(Point topOrLeft, int shipId, Direction dir)
 {
-    return false; // This compiles, but may not be correct
+    if(shipId<0 || shipId>(m_game.nShips()-1)){
+        return false;
+    }
+
+    //for horizontal
+    if(dir==0 && (topOrLeft.c>=mCols || m_game.shipLength(shipId)>(mCols-topOrLeft.c))){
+        return false;
+    }
+    //for vertial
+    if(dir==1 && (topOrLeft.r>=mRows || m_game.shipLength(shipId)>(mRows-topOrLeft.r))){
+        return false;
+    }
+    //if there is already a ship there
+    if(dir==0){
+        for(int i=0;i<m_game.shipLength(shipId);i++){
+            if(realBoard[topOrLeft.r][topOrLeft.c+i]!='.'){
+                return false;
+            }
+        }   
+    }
+    if(dir==1){
+        for(int i=0;i<m_game.shipLength(shipId);i++){
+            if(realBoard[topOrLeft.r+i][topOrLeft.c]!='.'){
+                return false;
+            }
+        }   
+    }
+    for (int i = 0; i < m_game.nShips(); i++){
+        if (i == shipId){
+            return false;
+        }
+    }
+
+    //horizontal addship    
+    if(dir==0){
+        for(int i=0; i<m_game.shipLength(shipId);i++){
+            realBoard[topOrLeft.r][topOrLeft.c+i]=m_game.shipSymbol(shipId);
+        }
+        return true;
+    }
+
+    else{
+        for(int i=0; i<m_game.shipLength(shipId);i++){
+            realBoard[topOrLeft.r+i][topOrLeft.c]=m_game.shipSymbol(shipId);
+        }
+        return true;
+    }
+        
 }
 
 bool BoardImpl::unplaceShip(Point topOrLeft, int shipId, Direction dir)
 {
-    return false; // This compiles, but may not be correct
+    if(shipId<0 || shipId>(m_game.nShips()-1)){
+        return false;
+    }
+
+    //for horizontal
+    if(dir==0 && (topOrLeft.c>=mCols || m_game.shipLength(shipId)>(mCols-topOrLeft.c))){
+        return false;
+    }
+    //for vertial
+    if(dir==1 && (topOrLeft.r>=mRows || m_game.shipLength(shipId)>(mRows-topOrLeft.r))){
+        return false;
+    }
+    //if there is not a ship there
+    if(dir==0){
+        for(int i=0;i<m_game.shipLength(shipId);i++){
+            if(realBoard[topOrLeft.r][topOrLeft.c+i]=='.'){
+                return false;
+            }
+        }   
+    }
+    if(dir==1){
+        for(int i=0;i<m_game.shipLength(shipId);i++){
+            if(realBoard[topOrLeft.r+i][topOrLeft.c]=='.'){
+                return false;
+            }
+        }   
+    }
+    for (int i = 0; i < m_game.nShips(); i++){
+        if (i != shipId){
+            return false;
+        }
+    }
+
+    //horizontal addship    
+    if(dir==0){
+        //if the clear is not enough, return false
+        if(realBoard[topOrLeft.r][topOrLeft.c-1]==m_game.shipSymbol(shipId)){
+            return false;
+        }
+        if (realBoard[topOrLeft.r][topOrLeft.c+m_game.shipLength(shipId)]==m_game.shipSymbol(shipId)){
+            return false;
+        }
+        for(int i=0; i<m_game.shipLength(shipId);i++){
+            realBoard[topOrLeft.r][topOrLeft.c+i]='.';
+        }
+
+        return true;
+    }
+
+    else{
+        //if the clear is not enough, return false
+        if(realBoard[topOrLeft.r-1][topOrLeft.c]==m_game.shipSymbol(shipId)){
+            return false;
+        }
+        if (realBoard[topOrLeft.r+m_game.shipLength(shipId)][topOrLeft.c]==m_game.shipSymbol(shipId)){
+            return false;
+        }
+        for(int i=0; i<m_game.shipLength(shipId);i++){
+            realBoard[topOrLeft.r+i][topOrLeft.c]='.';
+        }
+        return true;
+    }
 }
 
 void BoardImpl::display(bool shotsOnly) const
 {
-    // This compiles, but may not be correct
+    //first line
+    cout << "  ";
+    for (int i= 0; i < mCols; i++){
+        cout << i << " ";
+    }
+    cout << endl;
+
+    //if display all
+    if(shotsOnly == false){
+        for (int j = 0; j < mRows; j++)
+        {
+            cout << j << " ";
+            for (int c = 0; c < mCols; c++)
+            {
+                cout << realBoard[j][c];
+            }
+            cout << endl;
+        }
+    }
+    //if only display shots
+        if(shotsOnly == true){
+        for (int j = 0; j < mRows; j++)
+        {
+            cout << j << " ";
+            for (int c = 0; c < mCols; c++)
+            {   
+                
+            }
+            cout << endl;
+        }
+    }
+
+
+
 }
 
 bool BoardImpl::attack(Point p, bool& shotHit, bool& shipDestroyed, int& shipId)
 {
-    return false; // This compiles, but may not be correct
+
+    
 }
 
 bool BoardImpl::allShipsDestroyed() const
 {
-    return false; // This compiles, but may not be correct
+    
 }
 
 //******************** Board functions ********************************
