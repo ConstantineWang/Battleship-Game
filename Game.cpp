@@ -105,7 +105,71 @@ string GameImpl::shipName(int shipId) const
 
 Player* GameImpl::play(Player* p1, Player* p2, Board& b1, Board& b2, bool shouldPause)
 {
-    return nullptr;  // This compiles but may not be correct
+    bool p1ship = p1->placeShips(b1);
+    bool p2ship = p2->placeShips(b2);
+    if(p1ship==false || p2ship==false){
+        cout << "That's not one of the choices." << endl;
+        return nullptr;
+    }
+    while(b1.allShipsDestroyed()==false && b2.allShipsDestroyed()==false){
+        if(p1->isHuman()==false){
+            cout << p1->name() << "'s turn. Board for " <<  p2->name() << ':'<<endl;
+            bool hit;
+            bool destroy;
+            int shipId;
+            b2.display(false);
+            //Make the first player's attack
+            Point p = p1->recommendAttack();
+            if(b2.attack(p, hit, destroy, shipId)){
+                cout << p1->name() << " attacked (" << p.r << ',' << p.c << ") " <<(hit? "and hit something, resulting in:" : " and missed, resulting in:")<< endl;
+                //record the attack
+                p2->recordAttackByOpponent(p);
+            }
+            else{
+                cout << p1->name() << " wasted a shot at (" << p.r << ',' << p.c << ")." << endl;
+            }
+            b2.display(false);
+
+            if(b2.allShipsDestroyed()){
+                cout << p1->name() << " wins!" << endl;
+                return p1;
+            }
+
+            if(shouldPause){
+                waitForEnter();
+            }
+
+
+
+            cout << p2->name() << "'s turn. Board for " <<  p1->name() << ':'<<endl;
+            bool hit2;
+            bool destroy2;
+            int shipId2;
+            b1.display(false);
+            //Make the first player's attack
+            Point q = p2->recommendAttack();
+            if(b1.attack(p, hit2, destroy2, shipId2)){
+                cout << p2->name() << " attacked (" << q.r << ',' << q.c << ") " <<(hit2? "and hit something, resulting in:" : " and missed, resulting in:")<< endl;
+                //record the attack
+                p1->recordAttackByOpponent(q);
+            }
+            else{
+                cout << p2->name() << " wasted a shot at (" << q.r << ',' << q.c << ")." << endl;
+            }
+            b1.display(false);
+            //if should pause, wait for enter
+
+            if(b1.allShipsDestroyed()){
+                cout << p2->name() << " wins!" << endl;
+                return p2;
+            }
+
+            if(shouldPause){
+                waitForEnter();
+            }
+        }
+    }
+
 }
 
 //******************** Game functions *******************************

@@ -20,11 +20,15 @@ public:
 
 private:
       // TODO:  Decide what private members you need.  Here's one that's likely
-      //        to be useful:
+      //        to be useful
     const Game& m_game;
     int mRows;
     int mCols;
-    vector < vector <char> > realBoard;
+    int destroyedShips;
+    vector <char> mIds;
+    vector <int> mSymbols;
+    char realBoard[MAXROWS][MAXCOLS];
+
 };
 
 BoardImpl::BoardImpl(const Game& g)
@@ -33,7 +37,7 @@ BoardImpl::BoardImpl(const Game& g)
     mRows = m_game.rows();
     mCols = m_game.cols();
 
-        for (int i = 0; i < mCols; i++)
+    for (int i = 0; i < mCols; i++)
     {
         for (int j = 0; j < mRows; j++)
         {
@@ -105,6 +109,7 @@ bool BoardImpl::placeShip(Point topOrLeft, int shipId, Direction dir)
     if(shipId<0 || shipId>(m_game.nShips()-1)){
         return false;
     }
+    
 
     //for horizontal
     if(dir==0 && (topOrLeft.c>=mCols || m_game.shipLength(shipId)>(mCols-topOrLeft.c))){
@@ -129,17 +134,13 @@ bool BoardImpl::placeShip(Point topOrLeft, int shipId, Direction dir)
             }
         }   
     }
-    for (int i = 0; i < m_game.nShips(); i++){
-        if (i == shipId){
-            return false;
-        }
-    }
-
     //horizontal addship    
     if(dir==0){
         for(int i=0; i<m_game.shipLength(shipId);i++){
             realBoard[topOrLeft.r][topOrLeft.c+i]=m_game.shipSymbol(shipId);
         }
+        mIds.push_back(shipId);
+        mSymbols.push_back(m_game.shipSymbol(shipId));
         return true;
     }
 
@@ -147,6 +148,8 @@ bool BoardImpl::placeShip(Point topOrLeft, int shipId, Direction dir)
         for(int i=0; i<m_game.shipLength(shipId);i++){
             realBoard[topOrLeft.r+i][topOrLeft.c]=m_game.shipSymbol(shipId);
         }
+        mIds.push_back(shipId);
+        mSymbols.push_back(m_game.shipSymbol(shipId));
         return true;
     }
         
@@ -223,7 +226,7 @@ void BoardImpl::display(bool shotsOnly) const
     //first line
     cout << "  ";
     for (int i= 0; i < mCols; i++){
-        cout << i << " ";
+        cout << i;
     }
     cout << endl;
 
@@ -240,12 +243,17 @@ void BoardImpl::display(bool shotsOnly) const
         }
     }
     //if only display shots
-        if(shotsOnly == true){
+    if(shotsOnly == true){
         for (int j = 0; j < mRows; j++)
         {
             cout << j << " ";
             for (int c = 0; c < mCols; c++)
-            {   
+            {  
+                if(realBoard[j][c]!='o' && realBoard[j][c]!='x' &&realBoard[j][c]!='.'){
+                    cout << '.';
+                }else{
+                    cout << realBoard[j][c];
+                }
                 
             }
             cout << endl;
@@ -258,13 +266,59 @@ void BoardImpl::display(bool shotsOnly) const
 
 bool BoardImpl::attack(Point p, bool& shotHit, bool& shipDestroyed, int& shipId)
 {
+    //return false if the attack is invalid (the attack point is outside of the board area, or an attack is made on a previously attacked location)
+    if(p.r<0 || p.r>=mRows || p.c<0 || p.c>=mCols || realBoard[p.r][p.c]=='o' || realBoard[p.r][p.c]=='X'){
+        shotHit=false;
+        shipDestroyed=false;
+        return false;
+    }
+    //if it hit nothing
+    if(realBoard[p.r][p.c]=='.'){
+        realBoard[p.r][p.c]='o';
+        shotHit=false;
+        shipDestroyed=false;
+        return true;
+    }
+    //if any undamaged segment of a ship is at position p on the board,then the shotHit parameter must be set to true
+    if (realBoard[p.r][p.c]!='.'){
+        shotHit = true;
+        char shipSymbol = realBoard[p.r][p.c];
+        realBoard[p.r][p.c]='X';
+        //if a whole ship is destroyed, the shipId parameter must be set to the ship's id
+        //loop the whole board to check whether the symbol of the ship is destroyed
+        for(int i=0;i<mRows;i++){
+            for(int j=0;j<mCols;j++){
+                if(realBoard[i][j]==shipSymbol){
+                    shipDestroyed=false;
+                    return true;
+                }
+            }
+        }
+
+        //use mId and mSymbol to find the ship's id
+        char tempId=' ';
+        for(int i=0;i<mIds.size();i++){
+            if(shipSymbol==mSymbols[i]){
+                tempId=mIds[i];
+                mIds.erase(mIds.begin()+i);
+            }
+        }
+        shipId=tempId;
+        shipDestroyed=true;
+        
+        return true;
+    }
 
     
 }
 
 bool BoardImpl::allShipsDestroyed() const
 {
-    
+
+    if(mIds.size()==0){
+        return true;
+    }
+    return false;
 }
 
 //******************** Board functions ********************************
