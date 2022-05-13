@@ -71,6 +71,7 @@ void AwfulPlayer::recordAttackByOpponent(Point /* p */)
 
 bool getLineWithTwoIntegers(int& r, int& c, Board& b, Direction& dir, int k)
 {
+
     cout << "Enter row and column of leftmost cell (e.g., 3 5): ";
     bool result(cin >> r >> c);
     if (!result){
@@ -88,9 +89,12 @@ bool getLineWithTwoIntegers(int& r, int& c, Board& b, Direction& dir, int k)
     return true;
 }
 
-bool hOrV(char& c)
+bool hOrV(char& c, const Game& g, int k)
 {
-    cout << "Enter h or v for direction of " ;
+
+    string shipName=g.shipName(k);
+    int shipLength=g.shipLength(k);
+    cout << "Enter h or v for direction of " << shipName << " (length " << shipLength << "): ";
     
     cin >> c;
     cin.ignore(10000, '\n');
@@ -100,7 +104,7 @@ bool hOrV(char& c)
     else{
         cout << "Direction must be h or v." << endl;
         cin.clear();  // clear error state so can do more input operations
-        return hOrV(c);
+        return hOrV(c, g, k);
     }
 }
 
@@ -121,14 +125,14 @@ bool getLineWithTwoIntegersForAttack(int& r, int& c)
 class HumanPlayer : public Player
 {
     public:
-        HumanPlayer(string nm, const Game& g): Player(nm, g) {}
+        HumanPlayer(string nm, const Game& g): Player(nm, g){}
         virtual bool isHuman() const {return true;}
         virtual bool placeShips(Board& b){
             for (int k = 0; k < game().nShips(); k++)
             {
                 char direction;
                 Direction dir;              
-                hOrV(direction);
+                hOrV(direction, game(),k);
                 if (direction == 'h'){
                     dir = HORIZONTAL;
                 }
@@ -138,7 +142,9 @@ class HumanPlayer : public Player
                 int r, c;
                 while(getLineWithTwoIntegers( r,  c, b, dir, k)==false){
                 }
-                b.display(false);
+                if(k!=game().nShips()-1){
+                    b.display(false);
+                }               
             }  
             return true;
         }
