@@ -105,14 +105,21 @@ string GameImpl::shipName(int shipId) const
 
 Player* GameImpl::play(Player* p1, Player* p2, Board& b1, Board& b2, bool shouldPause)
 {
+    if(p2->isHuman()==true){
+        cout << p2->name() << " must place " << this->nShips() << " ships." << endl;
+    }
     bool p1ship = p1->placeShips(b1);
     bool p2ship = p2->placeShips(b2);
     if(p1ship==false || p2ship==false){
         cout << "That's not one of the choices." << endl;
         return nullptr;
     }
+    cin.ignore(10000, '\n');
     while(b1.allShipsDestroyed()==false && b2.allShipsDestroyed()==false){
-        if(p1->isHuman()==false){
+        //第一种情况，都是人机
+        if(p1->isHuman()==false && p2->isHuman()==false){
+            
+            //player1's turn
             cout << p1->name() << "'s turn. Board for " <<  p2->name() << ':'<<endl;
             bool hit;
             bool destroy;
@@ -121,8 +128,13 @@ Player* GameImpl::play(Player* p1, Player* p2, Board& b1, Board& b2, bool should
             //Make the first player's attack
             Point p = p1->recommendAttack();
             if(b2.attack(p, hit, destroy, shipId)){
-                cout << p1->name() << " attacked (" << p.r << ',' << p.c << ") " <<(hit? "and hit something, resulting in:" : " and missed, resulting in:")<< endl;
-                //record the attack
+                if(destroy==true){
+                    cout << p1->name() << " attacked (" << p.r << ',' << p.c << ") and destroyed " << this->shipName(shipId) << " ,resulting in:" << endl;
+                }
+                else{
+                    cout << p1->name() << " attacked (" << p.r << ',' << p.c << ") and hit something, resulting in:" << endl;
+                }
+                        //record the attack
                 p2->recordAttackByOpponent(p);
             }
             else{
@@ -139,8 +151,7 @@ Player* GameImpl::play(Player* p1, Player* p2, Board& b1, Board& b2, bool should
                 waitForEnter();
             }
 
-
-
+            //player2's turn
             cout << p2->name() << "'s turn. Board for " <<  p1->name() << ':'<<endl;
             bool hit2;
             bool destroy2;
@@ -148,10 +159,15 @@ Player* GameImpl::play(Player* p1, Player* p2, Board& b1, Board& b2, bool should
             b1.display(false);
             //Make the first player's attack
             Point q = p2->recommendAttack();
-            if(b1.attack(p, hit2, destroy2, shipId2)){
-                cout << p2->name() << " attacked (" << q.r << ',' << q.c << ") " <<(hit2? "and hit something, resulting in:" : " and missed, resulting in:")<< endl;
-                //record the attack
-                p1->recordAttackByOpponent(q);
+            if(b1.attack(q, hit2, destroy2, shipId2)){
+                if(destroy2==true){
+                    cout << p2->name() << " attacked (" << q.r << ',' << q.c << ") and destroyed " << this->shipName(shipId2) << " ,resulting in:" << endl;
+                }
+                else{
+                    cout << p2->name() << " attacked (" << q.r << ',' << q.c << ") and hit something, resulting in:" << endl;
+                }
+                        //record the attack
+                p2->recordAttackByOpponent(q);
             }
             else{
                 cout << p2->name() << " wasted a shot at (" << q.r << ',' << q.c << ")." << endl;
@@ -168,6 +184,73 @@ Player* GameImpl::play(Player* p1, Player* p2, Board& b1, Board& b2, bool should
                 waitForEnter();
             }
         }
+
+
+        //第二种情况 第一个是人机 第二个是人
+        if(p1->isHuman()==false && p2->isHuman()==true){
+            cout << p1->name() << "'s turn. Board for " <<  p2->name() << ':'<<endl;
+            bool hit;
+            bool destroy;
+            int shipId;
+            b2.display(false);
+            //Make the first player's attack
+            Point p = p1->recommendAttack();
+            if(b2.attack(p, hit, destroy, shipId)){
+                if(destroy==true){
+                    cout << p1->name() << " attacked (" << p.r << ',' << p.c << ") and destroyed " << this->shipName(shipId) << " ,resulting in:" << endl;
+                }
+                else{
+                    cout << p1->name() << " attacked (" << p.r << ',' << p.c << ") and hit something, resulting in:" << endl;
+                }
+                        //record the attack
+                p2->recordAttackByOpponent(p);
+            }
+            else{
+                cout << p1->name() << " wasted a shot at (" << p.r << ',' << p.c << ")." << endl;
+            }
+            b2.display(false);
+
+            if(b2.allShipsDestroyed()){
+                cout << p1->name() << " wins!" << endl;
+                return p1;
+            }
+
+            waitForEnter();
+            //player2's turn
+            cout << p2->name() << "'s turn. Board for " <<  p1->name() << ':'<<endl;
+            bool hit2;
+            bool destroy2;
+            int shipId2;
+            b1.display(true);
+
+            //Make the first player's attack
+            Point q = p2->recommendAttack();
+            if(b1.attack(q, hit2, destroy2, shipId2)){
+                if(destroy2==true){
+                    cout << p2->name() << " attacked (" << q.r << ',' << q.c << ") and destroyed " << this->shipName(shipId2) << " ,resulting in:" << endl;
+                }
+                else{
+                    cout << p2->name() << " attacked (" << q.r << ',' << q.c << ") and hit something, resulting in:" << endl;
+                }
+                b1.display(true);
+                        //record the attack
+                p2->recordAttackByOpponent(q);
+            }
+            else{
+                cout << p2->name() << " wasted a shot at (" << q.r << ',' << q.c << ")." << endl;
+            }
+
+            if(b1.allShipsDestroyed()){
+                cout << p2->name() << " wins!" << endl;
+                return p2;
+            }         
+            cin.ignore(10000, '\n');
+            waitForEnter();
+            
+            
+        }
+
+
     }
 
 }

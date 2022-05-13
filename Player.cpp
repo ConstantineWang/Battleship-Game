@@ -68,21 +68,110 @@ void AwfulPlayer::recordAttackByOpponent(Point /* p */)
 //  HumanPlayer
 //*********************************************************************
 
-bool getLineWithTwoIntegers(int& r, int& c)
+
+bool getLineWithTwoIntegers(int& r, int& c, Board& b, Direction& dir, int k)
 {
+    cout << "Enter row and column of leftmost cell (e.g., 3 5): ";
     bool result(cin >> r >> c);
-    if (!result)
+    if (!result){
+        cout << "You must enter two integers."<<endl;
         cin.clear();  // clear error state so can do more input operations
-    cin.ignore(10000, '\n');
-    return result;
+        cin.ignore(10000, '\n');
+        return false;
+    }
+    if (!b.placeShip(Point(r,c), k, dir)){
+        cout << "You cannot place a ship there." << endl;
+        cin.ignore(10000, '\n');
+        return false;
+    }
+    
+    return true;
 }
 
-// TODO:  You need to replace this with a real class declaration and
-//        implementation.
-typedef AwfulPlayer HumanPlayer;
+bool hOrV(char& c)
+{
+    cout << "Enter h or v for direction of " ;
+    
+    cin >> c;
+    cin.ignore(10000, '\n');
+    if(c=='h' || c=='v'){  
+        return true;
+    }
+    else{
+        cout << "Direction must be h or v." << endl;
+        cin.clear();  // clear error state so can do more input operations
+        return hOrV(c);
+    }
+}
+
+bool getLineWithTwoIntegersForAttack(int& r, int& c)
+{
+    cout << "Enter row and column of leftmost cell (e.g., 3 5): ";
+    bool result(cin >> r >> c);
+    if (!result){
+        cout << "You must enter two integers."<<endl;
+        cin.clear();  // clear error state so can do more input operations
+        cin.ignore(10000, '\n');
+        return false;
+    }
+    return true;
+}
+
+
+class HumanPlayer : public Player
+{
+    public:
+        HumanPlayer(string nm, const Game& g): Player(nm, g) {}
+        virtual bool isHuman() const {return true;}
+        virtual bool placeShips(Board& b){
+            for (int k = 0; k < game().nShips(); k++)
+            {
+                char direction;
+                Direction dir;              
+                hOrV(direction);
+                if (direction == 'h'){
+                    dir = HORIZONTAL;
+                }
+                else{
+                    dir = VERTICAL;
+                }
+                int r, c;
+                while(getLineWithTwoIntegers( r,  c, b, dir, k)==false){
+                }
+                b.display(false);
+            }  
+            return true;
+        }
+
+        virtual Point recommendAttack(){
+            int r, c;
+            while(getLineWithTwoIntegersForAttack(r, c)==false){
+            }
+            return Point(r, c);
+        }
+        virtual void recordAttackResult(Point p, bool validShot, bool shotHit,
+                                                bool shipDestroyed, int shipId){
+                                                }
+        virtual void recordAttackByOpponent(Point p){}
+
+
+};
+
+
+
 
 //*********************************************************************
 //  MediocrePlayer
+// class MediocrePlayer : public Player
+// {
+//     public:
+//         MediocrePlayer(string nm, const Game& g);
+//         virtual bool placeShips(Board& b);
+// };
+
+
+
+
 //*********************************************************************
 
 // TODO:  You need to replace this with a real class declaration and

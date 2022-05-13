@@ -109,7 +109,11 @@ bool BoardImpl::placeShip(Point topOrLeft, int shipId, Direction dir)
     if(shipId<0 || shipId>(m_game.nShips()-1)){
         return false;
     }
-    
+
+    //if negative point
+    if(topOrLeft.r<0 || topOrLeft.c<0){
+        return false;
+    }
 
     //for horizontal
     if(dir==0 && (topOrLeft.c>=mCols || m_game.shipLength(shipId)>(mCols-topOrLeft.c))){
@@ -249,7 +253,7 @@ void BoardImpl::display(bool shotsOnly) const
             cout << j << " ";
             for (int c = 0; c < mCols; c++)
             {  
-                if(realBoard[j][c]!='o' && realBoard[j][c]!='x' &&realBoard[j][c]!='.'){
+                if(realBoard[j][c]!='o' && realBoard[j][c]!='X' && realBoard[j][c]!='.'){
                     cout << '.';
                 }else{
                     cout << realBoard[j][c];
