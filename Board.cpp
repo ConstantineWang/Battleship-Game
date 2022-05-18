@@ -25,8 +25,8 @@ private:
     int mRows;
     int mCols;
     int destroyedShips;
-    vector <char> mIds;
-    vector <int> mSymbols;
+    vector <int> mIds;
+    vector <char> mSymbols;
     char realBoard[MAXROWS][MAXCOLS];
 
 };
@@ -59,35 +59,20 @@ void BoardImpl::clear()
 
 void BoardImpl::block()
 {
-    int num = 0;
-      // Block cells with 50% probability
-    for (int r = 0; r < m_game.rows(); r++)
-        for (int c = 0; c < m_game.cols(); c++){
-            if (randInt(2) == 0)
-            {
-                for (int r = 0; r < mRows; r++)
-                {
-                    for (int c = 0; c < mCols; c++)
-                    {
-                        if(realBoard[r][c] == 'X')
-                        {
-                            num++;
-                        }
-                    }
-                }
-                if(num >= mRows*mCols/2)
-                {
-                    return;
-                } 
-
-                realBoard[r][c] = 'X';
-            }
-        }
-        if(num <= mRows*mCols/2)
+    //randomly block exactly half of the board
+    int blockNum = mCols * mRows / 2;
+    int blockCount = 0;
+    while (blockCount < blockNum)
+    {
+        int row = randInt(mRows);
+        int col = randInt(mCols);
+        if (realBoard[col][row] == '.')
         {
-            block();
+            realBoard[col][row] = '#';
+            blockCount++;
         }
-        return;
+    }
+
 }
 
 
@@ -96,7 +81,7 @@ void BoardImpl::unblock()
     for (int r = 0; r < m_game.rows(); r++)
         for (int c = 0; c < m_game.cols(); c++)
         {
-            if (realBoard[r][c] == 'X')
+            if (realBoard[r][c] == '#')
             {
                 realBoard[r][c] = '.';
             }
@@ -161,6 +146,7 @@ bool BoardImpl::placeShip(Point topOrLeft, int shipId, Direction dir)
 
 bool BoardImpl::unplaceShip(Point topOrLeft, int shipId, Direction dir)
 {
+    cout << "unplaceShip" << topOrLeft.r << " " << topOrLeft.c << " " << shipId << " " << dir << endl;
     if(shipId<0 || shipId>(m_game.nShips()-1)){
         return false;
     }
@@ -187,11 +173,6 @@ bool BoardImpl::unplaceShip(Point topOrLeft, int shipId, Direction dir)
                 return false;
             }
         }   
-    }
-    for (int i = 0; i < m_game.nShips(); i++){
-        if (i != shipId){
-            return false;
-        }
     }
 
     //horizontal addship    
@@ -296,15 +277,24 @@ bool BoardImpl::attack(Point p, bool& shotHit, bool& shipDestroyed, int& shipId)
                     shipDestroyed=false;
                     return true;
                 }
+                
             }
         }
 
         //use mId and mSymbol to find the ship's id
         char tempId=' ';
+        // for(int i=0;i<mIds.size();i++){
+        //     if(shipSymbol==mSymbols[i]){
+        //         tempId=mIds[i];
+        //         mIds.erase(mIds.begin()+i);
+        //     }
+        // }
+        //delete one mId and mSymbol
         for(int i=0;i<mIds.size();i++){
             if(shipSymbol==mSymbols[i]){
                 tempId=mIds[i];
                 mIds.erase(mIds.begin()+i);
+                mSymbols.erase(mSymbols.begin()+i);
             }
         }
         shipId=tempId;
@@ -318,7 +308,6 @@ bool BoardImpl::attack(Point p, bool& shotHit, bool& shipDestroyed, int& shipId)
 
 bool BoardImpl::allShipsDestroyed() const
 {
-
     if(mIds.size()==0){
         return true;
     }

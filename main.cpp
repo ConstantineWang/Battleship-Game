@@ -8,7 +8,7 @@ using namespace std;
 bool addStandardShips(Game& g)
 {
     return g.addShip(5, 'A', "aircraft carrier")  &&
-            g.addShip(4, 'B', "battleship")  &&
+            g.addShip(4, 'B', "battleship")  && 
             g.addShip(3, 'D', "destroyer")  &&
             g.addShip(3, 'S', "submarine")  &&
             g.addShip(2, 'P', "patrol boat");
@@ -16,7 +16,7 @@ bool addStandardShips(Game& g)
 
 int main()
 {
-    const int NTRIALS = 10;
+    const int NTRIALS = 100;
 
     cout << "Select one of these choices for an example of the game:" << endl;
     cout << "  1.  A mini-game between two mediocre players" << endl;
@@ -46,9 +46,9 @@ int main()
     {
         Game g(10, 10);
         addStandardShips(g);
-        Player* p1 = createPlayer("mediocre", "Mediocre Midori", g);
-        Player* p2 = createPlayer("human", "Shuman the Human", g);
-        g.play(p1, p2);
+        Player* p1 = createPlayer("mediocre", "mediocre", g);
+        Player* p2 = createPlayer("awful", "awful", g);
+        g.play(p1, p2,true);
         delete p1;
         delete p2;
     }
@@ -62,11 +62,11 @@ int main()
                 << " =============================" << endl;
             Game g(10, 10);
             addStandardShips(g);
-            Player* p1 = createPlayer("awful", "Awful Audrey", g);
-            Player* p2 = createPlayer("mediocre", "Mediocre Mimi", g);
+            Player* p1 = createPlayer("mediocre", "Mediocre Mimi", g);
+            Player* p2 = createPlayer("awful", "Awful", g);
             Player* winner = (k % 2 == 1 ?
                                 g.play(p1, p2, false) : g.play(p2, p1, false));
-            if (winner == p2)
+            if (winner == p1)
                 nMediocreWins++;
             delete p1;
             delete p2;
