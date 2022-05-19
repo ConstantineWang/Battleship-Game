@@ -168,20 +168,35 @@ class HumanPlayer : public Player
 
 //*********************************************************************
 //  MediocrePlayer
+bool tackleWithPlace(bool placeOrNot, Board& b, int r, int c,int id){
+    if(placeOrNot){
+        if (b.placeShip(Point(r,c),id, VERTICAL))return true;
+        if (b.placeShip(Point(r,c),id, HORIZONTAL)) return true;
+        else return false;
+    }
+    else{
+        if(b.unplaceShip(Point(r,c), id, VERTICAL))return true;
+    if(b.unplaceShip(Point(r,c),id , HORIZONTAL)) return true;
+    else{
+        return false;
+    }
+    }
+}
+
+
+
 class MediocrePlayer : public Player
 {
     public:
         MediocrePlayer(string nm, const Game& g);
         virtual bool placeShips(Board& b);
-        bool myPlaceShips(Board& b, int & count,int row, int col, int prevRow, int prevCol, Direction prevDir);
+        bool mPlaceShip(Board& b, int id);
         virtual Point recommendAttack();
         virtual void recordAttackResult(Point p, bool validShot, bool shotHit,
                                                 bool shipDestroyed, int shipId);
         virtual void recordAttackByOpponent(Point p);
         bool Duplicate(Point p);
         void randomShuffleAndAdd(Point p, int n);
-        bool placeShipAt(int r, int c, Board& b, int shipId);
-        bool unplaceShipAt(int r, int c, Board& b, int shipId);
     private:
         Point m_lastCellAttacked;
         Point m_lastCellAttackedByOpponent;
@@ -190,6 +205,10 @@ class MediocrePlayer : public Player
         vector <Point> forAttackVector;
         int mstate;
         Point forAttack[100];
+        vector <Point> forAttackUp;
+        vector <Point> forAttackDown;
+        vector <Point> forAttackLeft;
+        vector <Point> forAttackRight;
         
 };
 
@@ -197,129 +216,46 @@ MediocrePlayer::MediocrePlayer(string nm, const Game& g)
 : Player(nm, g), m_lastCellAttacked(0, 0), m_lastCellAttackedByOpponent(0, 0),mstate(1)
 {}
 
-
-bool MediocrePlayer::myPlaceShips(Board& b, int & count,int row, int col, int prevRow, int prevCol, Direction prevDir){
-    if(count==game().nShips()){
-        return true;
-    }
-
-    //walk through the board
-    if(b.placeShip(Point(row+1,col),count,VERTICAL)){
-        for(int i=0;i<game().rows()-1;i++){
-            for(int j=0;j<game().cols()-1;j++){
-                return myPlaceShips(b,++count, i, j, row,col,VERTICAL);
-            }
-        }
-    }
-    
-    
-    if(b.placeShip(Point(row,col+1),count,VERTICAL)){
-                for(int i=0;i<game().rows()-1;i++){
-            for(int j=0;j<game().cols()-1;j++){
-        return myPlaceShips(b,++count, i, j, row,col,VERTICAL);
-            }}
-        
-    }
-
-    if(b.placeShip(Point(row-1,col),count,VERTICAL)){
-        for(int i=0;i<game().rows()-1;i++){
-            for(int j=0;j<game().cols()-1;j++){
-                return myPlaceShips(b,++count, i, j, row,col,VERTICAL);
-            }
-        }
-    }
-
-    if(b.placeShip(Point(row,col-1),count,VERTICAL)){
-        for(int i=0;i<game().rows()-1;i++){
-            for(int j=0;j<game().cols()-1;j++){
-                return myPlaceShips(b,++count, i, j, row,col,VERTICAL);
-            }
-        }
-    }
-
-    if(b.placeShip(Point(row+1,col),count,HORIZONTAL)){
-        for(int i=0;i<game().rows()-1;i++){
-            for(int j=0;j<game().cols()-1;j++){
-                return myPlaceShips(b,++count, i, j, row,col,HORIZONTAL);
-            }
-        }
-    }
-
-    if(b.placeShip(Point(row,col+1),count,HORIZONTAL)){
-        for(int i=0;i<game().rows()-1;i++){
-            for(int j=0;j<game().cols()-1;j++){
-                return myPlaceShips(b,++count, i, j, row,col,HORIZONTAL);
-            }
-        }
-    }
-
-    if(b.placeShip(Point(row-1,col),count,HORIZONTAL)){
-        for(int i=0;i<game().rows()-1;i++){
-            for(int j=0;j<game().cols()-1;j++){
-                return myPlaceShips(b,++count, i, j, row,col,HORIZONTAL);
-            }
-        }
-    }
-
-    if(b.placeShip(Point(row,col-1),count,HORIZONTAL)){
-        for(int i=0;i<game().rows()-1;i++){
-            for(int j=0;j<game().cols()-1;j++){
-                return myPlaceShips(b,++count, i, j, row,col,HORIZONTAL);
-            }
-        }
-    }
-    
-    return false;
-}
-
-
-bool MediocrePlayer::placeShipAt(int r, int c, Board& b, int shipId){
-    if (b.placeShip(Point(r,c), shipId, VERTICAL)) {
-        return true;
-    }
-    if (b.placeShip(Point(r,c), shipId, HORIZONTAL)) {
-        return true;
-    }
-    return false;
-}
-
-bool MediocrePlayer::unplaceShipAt(int r, int c, Board& b, int shipId){
-    if (b.unplaceShip(Point(r,c), shipId, VERTICAL)) {
-        return true;
-    }
-    if (b.unplaceShip(Point(r,c), shipId, HORIZONTAL)) {
-        return true;
-    }
-    return false;
-}
-
-
-
 bool MediocrePlayer::placeShips(Board& b){
-    if(game().nShips()==0){
+    if (game().nShips()==0){
         return true;
     }
-    int count=0;
     int trying = 0;
-    Direction dir=HORIZONTAL;
-    while(trying !=50){
-    b.block();
-    for(int r = 0; r < game().rows(); r++){
-        
-        for(int c = 0; c < game().cols(); c++){
-            if(myPlaceShips(b, count, r, c,r,c,dir)){
-                if(count==game().nShips()){
-                    b.unblock();
-                    return true;
-                }
-            }
-        }  
-    }
-    b.clear();
-    b.unblock();
-    trying++;
+    while (trying!= 50) {
+        b.block();
+        bool result=mPlaceShip(b,0);
+        b.unblock();
+        if (result){
+            return true;
+        }
+        //cout << "trying " << trying << endl;
+        b.clear();
+        trying++;
     }
     return false;
+}
+
+
+bool MediocrePlayer::mPlaceShip(Board& b, int id){
+    int temp;
+    if (id==game().nShips()) {
+        return true;
+    }
+    for (int r= 0; r< game().rows();r++) {
+        for (int c= 0; c< game().cols();c++) {
+            if (tackleWithPlace(1, b,r, c,id)) {
+                temp = id+1;
+                if (!mPlaceShip(b,temp)) {
+                    tackleWithPlace(0,b,r, c,id);
+                }else return true;
+            }
+        }
+    }
+
+
+
+    return false;
+
 }
 
 bool MediocrePlayer::Duplicate(Point p){
@@ -346,9 +282,7 @@ Point MediocrePlayer::recommendAttack(){
     }
     else if(mstate==2){
         //print out the vector for attack
-        for(int i = 0; i < forAttackVector.size(); i++){
-            cout << forAttackVector[i].r << " " << forAttackVector[i].c << endl;
-        }
+
         Point temp = forAttackVector[forAttackVector.size()-1];
         forAttackVector.pop_back();
         mPoint.push_back(temp);
@@ -401,6 +335,7 @@ void MediocrePlayer::randomShuffleAndAdd(Point p, int n=0){
         forAttack[i] = forAttack[j];
         forAttack[j] = temp;
     }
+    forAttackVector.clear();
     for(int i = 0; i < n; i++){
         forAttackVector.push_back(forAttack[i]);
     }
@@ -440,9 +375,323 @@ void MediocrePlayer::recordAttackByOpponent(Point p){
 //  GoodPlayer
 //*********************************************************************
 
-// TODO:  You need to replace this with a real class declaration and
-//        implementation.
-typedef AwfulPlayer GoodPlayer;
+class GoodPlayer : public Player
+{
+    public:
+        GoodPlayer(string nm, const Game& g);
+        virtual bool placeShips(Board& b);
+        bool mPlaceShip(Board& b, int id);
+        virtual Point recommendAttack();
+        virtual void recordAttackResult(Point p, bool validShot, bool shotHit,
+                                                bool shipDestroyed, int shipId);
+        virtual void recordAttackByOpponent(Point p);
+        bool Duplicate(Point p);
+        void randomShuffleAndAdd(Point p, int n);
+        void randomShuffleAndAddUp(Point p);
+        void randomShuffleAndAddDown(Point p);
+        void randomShuffleAndAddLeft(Point p);
+        void randomShuffleAndAddRight(Point p);
+    private:
+        Point m_lastCellAttacked;
+        Point m_lastCellAttackedByOpponent;
+        vector <int> mId;
+        vector <Point> mPoint;
+        vector <Point> forAttackVector;
+        int mstate;
+        Point forAttack[100];
+        int mBoard[MAXROWS][MAXCOLS];
+        int num = 0;
+        
+};
+
+GoodPlayer::GoodPlayer(string nm, const Game& g)
+: Player(nm, g), m_lastCellAttacked(0, 0), m_lastCellAttackedByOpponent(0, 0),mstate(1)
+{
+    for(int i = 0; i < game().rows(); i++){
+        for(int j = 0; j < game().cols(); j++){
+            mBoard[i][j] = 0;
+        }
+    }
+
+    //make the mboard as a checkboard
+    for(int i = 0; i < game().rows(); i++){
+        for(int j = 0; j < game().cols(); j++){
+            if(i%2==0){
+                if(j%2==0){
+                    mBoard[i][j] = 1;
+                }
+            }
+            else{
+                if(j%2!=0){
+                    mBoard[i][j] = 1;
+                }
+            }
+        }
+    }
+}
+
+bool GoodPlayer::placeShips(Board& b){
+    if (game().nShips()==0){
+        return true;
+    }
+    int trying = 0;
+    while (trying!= 50) {
+        b.block();
+
+        bool result=mPlaceShip(b,0);
+        b.unblock();
+        if (result){
+            return true;
+        }
+        //cout << "trying " << trying << endl;
+        b.clear();
+        trying++;
+    }
+    return false;
+}
+
+
+bool GoodPlayer::mPlaceShip(Board& b, int id){
+    int temp;
+    if (id==game().nShips()) {
+        return true;
+    }
+    //do not let the ship go the center of the board
+    for (int r= 0; r< game().rows();r++) {
+        for (int c= 0; c< game().cols();c++) {
+            if (tackleWithPlace(1, b,r, c,id)) {
+                temp = id+1;
+                if (!mPlaceShip(b,temp)) {
+                    tackleWithPlace(0,b,r, c,id);
+                }else return true;
+            }
+        }
+
+        }
+        return false;
+    }
+
+
+
+    
+
+
+
+bool GoodPlayer::Duplicate(Point p){
+    for(int i = 0; i < mPoint.size(); i++){
+        if(mPoint[i].c==p.c && mPoint[i].r==p.r){
+            return true;
+        }
+    }
+    return false;
+}
+
+Point GoodPlayer::recommendAttack(){
+    int row;    
+    int col;
+    if(mstate==1 || forAttackVector.size()==0){
+        forAttackVector.clear();
+        row = randInt(game().rows());
+        col = randInt(game().cols());
+        int trying =0;
+        while(trying != 50){
+            row = randInt(game().rows());
+            col = randInt(game().cols());
+            if( Duplicate(Point(row,col))==false && mBoard[row][col]==0){
+                mPoint.push_back(Point(row,col));
+                return Point (row,col);
+            }
+            trying++;
+        }    
+        while (trying!= 100) {
+            row = randInt(game().rows());
+            col = randInt(game().cols());
+            if( Duplicate(Point(row,col))==false){
+                mPoint.push_back(Point(row,col));
+                return Point (row,col);
+            }
+            trying++;
+        }
+        mPoint.push_back(Point(row,col));
+        return Point(row,col);
+    }
+    else{
+        //print out the vector for attack
+
+        for(int i = 0; i < forAttackVector.size(); i++){
+        }
+        Point temp = forAttackVector[forAttackVector.size()-1];
+        forAttackVector.pop_back();
+
+        
+        mPoint.push_back(temp);
+        if(forAttackVector.size()==0){
+            mstate=1;
+        }
+        return temp;
+    }
+
+}
+
+
+
+void GoodPlayer::randomShuffleAndAddUp(Point p){
+    int n = 0;
+    for(int i = 1; i <= 4; i++){
+        if(p.c>=0 && p.r-i>=0){
+            if(Duplicate(Point(p.r-i,p.c))==false){
+                            forAttack[n]=Point(p.r-i,p.c);
+                            n++;
+            }
+        }
+    }
+    forAttackVector.clear();
+    //add to the vector forAttackVector
+    for(int i = 0; i < n; i++){
+        forAttackVector.push_back(forAttack[i]);
+    }
+}
+
+void GoodPlayer::randomShuffleAndAddDown(Point p){
+    int n=0;
+    for(int i = 1; i <= 4; i++){
+        if(p.c>=0 && p.r+i<game().rows()){
+            if(Duplicate(Point(p.r+i,p.c))==false){
+                            forAttack[n]=Point(p.r+i,p.c);
+                            n++;
+            }
+        }
+    }
+    forAttackVector.clear();
+    //add to the vector forAttackVector
+    for(int i = 0; i < n; i++){
+        forAttackVector.push_back(forAttack[i]);
+    }
+}
+
+void GoodPlayer::randomShuffleAndAddLeft(Point p){
+    int n=0;
+    for(int i = 1; i <= 4; i++){
+        if(p.c-i>=0){
+            if(Duplicate(Point(p.r,p.c-i))==false){
+                            forAttack[n]=Point(p.r,p.c-i);
+                            n++;
+            }
+        }
+    }
+    forAttackVector.clear();
+    //add to the vector forAttackVector
+    for(int i = 0; i < n; i++){
+        forAttackVector.push_back(forAttack[i]);
+    }
+}
+
+void GoodPlayer::randomShuffleAndAddRight(Point p){
+    int n=0;
+    for(int i = 1; i <= 4; i++){
+        if(p.c+i<game().cols()){
+            if(Duplicate(Point(p.r,p.c+i))==false){
+                            forAttack[n]=Point(p.r,p.c+i);
+                            n++;
+            }
+        }
+    }
+    forAttackVector.clear();
+    //add to the vector forAttackVector
+    for(int i = 0; i < n; i++){
+        forAttackVector.push_back(forAttack[i]);
+    }
+}
+
+
+void GoodPlayer::randomShuffleAndAdd(Point p, int n=0){
+    for(int i = 1; i <= 4; i++){
+        if(p.c>=0 && p.r-i>=0){
+            if(Duplicate(Point(p.r-i,p.c))==false){
+                            forAttack[n]=Point(p.r-i,p.c);
+                            n++;
+            }
+        }
+    }
+    for(int i = 1; i <= 4; i++){
+        if(p.c<game().cols() && p.r+i<game().rows()){
+            if (Duplicate(Point(p.r+i,p.c))==false){
+                            forAttack[n]=Point(p.r+i,p.c);
+                            n++;
+            }
+        }
+    }
+    for(int i = 1; i <= 4; i++){
+        if(p.c+i<game().cols() && p.r<game().rows()){
+            if (Duplicate(Point(p.r,p.c+i))==false){
+                            forAttack[n]=Point(p.r,p.c+i);
+                            n++;
+            }
+        }
+    }
+    for(int i = 1; i <= 4; i++){
+        if(p.c-i>=0 && p.r<game().rows()){
+            if (Duplicate(Point(p.r,p.c-i))==false){
+                            forAttack[n]=Point(p.r,p.c-i);
+                            n++;
+            }
+        }
+    }
+
+    //random shuffle the array, and add every element to the vector forAttackVector
+    for(int i = 0; i < n; i++){
+        int j = randInt(n);
+        Point temp = forAttack[i];
+        forAttack[i] = forAttack[j];
+        forAttack[j] = temp;
+    }
+    forAttackVector.clear();
+    for(int i = 0; i < n; i++){
+        forAttackVector.push_back(forAttack[i]);
+    }
+}
+void GoodPlayer::recordAttackResult(Point p, bool validShot, bool shotHit,bool shipDestroyed, int shipId){
+    if(validShot){
+        if(shotHit&&(!shipDestroyed)&&mstate==1){
+            randomShuffleAndAdd(p);
+            m_lastCellAttacked = p;
+            mstate=2;
+        }
+
+        // if(shotHit&&(!shipDestroyed)&&mstate==2 && p.r> m_lastCellAttacked.r){
+        //     randomShuffleAndAddUp(p);
+        //     m_lastCellAttacked = p;
+        //     mstate=3;
+        // }
+        // if(shotHit&&(!shipDestroyed)&&mstate==2 && p.r< m_lastCellAttacked.r){
+        //     randomShuffleAndAddDown(p);
+        //     m_lastCellAttacked = p;
+        //     mstate=4;
+            
+        // }
+        // if(shotHit&&(!shipDestroyed)&&mstate==2 && p.c> m_lastCellAttacked.c){
+        //     randomShuffleAndAddRight(p);
+        //     m_lastCellAttacked = p;
+        //     mstate=5;
+        // }
+        // if(shotHit&&(!shipDestroyed)&&mstate==2 && p.c< m_lastCellAttacked.c){
+        //     randomShuffleAndAddLeft(p);
+        //     m_lastCellAttacked = p;
+        //     mstate=6;
+        // }
+
+        if(shotHit&&shipDestroyed){
+            mstate=1;
+        }
+    }
+    
+}
+
+
+void GoodPlayer::recordAttackByOpponent(Point p){
+    //do nothing
+}
+
 
 //*********************************************************************
 //  createPlayer
